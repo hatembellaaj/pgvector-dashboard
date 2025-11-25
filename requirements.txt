@@ -6,4 +6,4 @@ scikit-learn
 umap-learn
 hdbscan
 plotly
-st-aggrid==1.26.1
+streamlit-aggrid==0.3.4.post3
