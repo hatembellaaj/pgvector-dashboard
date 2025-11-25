@@ -3,7 +3,12 @@ import hdbscan
 
 
 def cluster_kmeans(X, k):
-    model = KMeans(n_clusters=k)
+    n_samples = len(X)
+    if n_samples == 0:
+        return []
+
+    n_clusters = min(k, n_samples)
+    model = KMeans(n_clusters=n_clusters)
     return model.fit_predict(X)
 
 
