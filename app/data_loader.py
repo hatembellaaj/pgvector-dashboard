@@ -1,3 +1,5 @@
+import ast
+import json
 import os
 
 import numpy as np
@@ -79,5 +81,37 @@ def load_embeddings(table_name=None):
         FROM {target_table}
     """
     df = pd.read_sql(query, conn)
-    df["embedding"] = df["embedding"].apply(lambda v: np.array(v, dtype=float))
+    df["embedding"] = df["embedding"].apply(_coerce_embedding_to_float_array)
     return df
+
+
+def _coerce_embedding_to_float_array(value):
+    """Normalize embedding values to float numpy arrays.
+
+    Handles arrays returned as Python lists/tuples/ndarrays as well as string
+    representations such as "[-0.1, 0.2]" that may come from certain
+    PostgreSQL drivers or serialization layers.
+    """
+
+    if isinstance(value, np.ndarray):
+        return value.astype(float)
+
+    if isinstance(value, (list, tuple)):
+        return np.array(value, dtype=float)
+
+    if isinstance(value, str):
+        cleaned = value.strip()
+
+        try:
+            parsed = json.loads(cleaned)
+        except json.JSONDecodeError:
+            try:
+                parsed = ast.literal_eval(cleaned)
+            except (ValueError, SyntaxError) as exc:
+                raise ValueError(
+                    "Embedding value could not be parsed from string format"
+                ) from exc
+
+        return np.array(parsed, dtype=float)
+
+    raise ValueError(f"Unsupported embedding type: {type(value)!r}")
