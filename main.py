@@ -54,17 +54,22 @@ if df.empty:
     st.stop()
 
 max_sample = min(len(df), 5000)
-min_sample = 1 if max_sample < 100 else 100
-default_sample = min(max_sample, 1000) if max_sample >= min_sample else max_sample
-step = 50 if max_sample > 50 else 1
 
-sample_size = st.sidebar.slider(
-    "Taille échantillon (visualisation)",
-    min_value=min_sample,
-    max_value=max_sample,
-    value=default_sample,
-    step=step,
-)
+if max_sample <= 1:
+    st.sidebar.info("Un seul embedding disponible pour la visualisation.")
+    sample_size = 1
+else:
+    min_sample = 1 if max_sample < 100 else 100
+    default_sample = min(max_sample, 1000) if max_sample >= min_sample else max_sample
+    step = 50 if max_sample > 50 else 1
+
+    sample_size = st.sidebar.slider(
+        "Taille échantillon (visualisation)",
+        min_value=min_sample,
+        max_value=max_sample,
+        value=default_sample,
+        step=step,
+    )
 
 if sample_size < len(df):
     df_viz = df.sample(sample_size, random_state=sample_seed).reset_index(drop=True)
