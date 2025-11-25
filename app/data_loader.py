@@ -50,8 +50,32 @@ def load_embeddings(table_name=None):
     target_table = table_name or config["table_name"]
 
     conn = get_connection()
+
+    if "." in target_table:
+        schema, plain_table = target_table.split(".", 1)
+    else:
+        schema, plain_table = "public", target_table
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = %s
+              AND table_name = %s
+            """,
+            (schema, plain_table),
+        )
+        columns = {row[0] for row in cur.fetchall()}
+
+    text_column = "text" if "text" in columns else "document" if "document" in columns else None
+    if text_column is None:
+        raise ValueError(
+            f"Table '{target_table}' must contain either a 'text' or 'document' column"
+        )
+
     query = f"""
-        SELECT id, text, embedding
+        SELECT id, {text_column} AS text, embedding
         FROM {target_table}
     """
     df = pd.read_sql(query, conn)
