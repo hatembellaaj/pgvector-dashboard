@@ -7,9 +7,10 @@ services:
     ports:
       - "8501:8501"
     environment:
-      db_name: raise
-      db_user: postgres
-      db_password: postgres
-      db_host: host.docker.internal
-      db_port: 5432
+      DB_NAME: raise
+      DB_TABLE: embeddings
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: host.docker.internal
+      DB_PORT: 5432
     restart: unless-stopped
